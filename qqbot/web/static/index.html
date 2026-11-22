@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QQ 机器人控制台</title>
+<link rel="icon" type="image/svg+xml" href="/static/icon.svg">
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+
+<!-- ========== 顶部提示 ========== -->
+<div id="toast-layer" class="toast-layer" aria-live="polite"></div>
+
+<!-- ========== 登录 ========== -->
+<div id="login-screen" class="login-screen hidden">
+  <form id="login-form" class="login-card" autocomplete="off">
+    <div class="login-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
+           stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 4h8a5 5 0 0 1 5 5v5a5 5 0 0 1-5 5h-3l-4.5 3.5V19A5 5 0 0 1 3 14V9a5 5 0 0 1 5-5z"/>
+        <path d="M12 7.6l1.05 2.75L15.8 11.4l-2.75 1.05L12 15.2l-1.05-2.75L8.2 11.4l2.75-1.05z"/>
+      </svg>
+    </div>
+    <h1>QQ 机器人控制台</h1>
+    <p class="login-sub">请输入访问令牌以继续</p>
+    <label class="field-label" for="login-token">访问令牌</label>
+    <input id="login-token" class="input" name="token" type="password" placeholder="访问令牌" autocomplete="current-password">
+    <div id="login-error" class="form-error hidden"></div>
+    <button id="login-submit" class="btn btn-primary btn-block" type="submit">登录</button>
+    <p class="login-foot">令牌保存在服务端会话中，不会写入浏览器存储。</p>
+  </form>
+</div>
+
+<!-- ========== 主体 ========== -->
+<div id="app" class="app hidden">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+             stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 4h8a5 5 0 0 1 5 5v5a5 5 0 0 1-5 5h-3l-4.5 3.5V19A5 5 0 0 1 3 14V9a5 5 0 0 1 5-5z"/>
+          <path d="M12 7.6l1.05 2.75L15.8 11.4l-2.75 1.05L12 15.2l-1.05-2.75L8.2 11.4l2.75-1.05z"/>
+        </svg>
+      </span>
+      <span class="brand-text">QQ 机器人</span>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button class="nav-item" data-view="dashboard" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg>
+        <span>概览</span>
+      </button>
+      <button class="nav-item" data-view="groups" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.8 20c0-3.2 2.8-5.4 6.2-5.4s6.2 2.2 6.2 5.4"/><path d="M16.2 5.2a3 3 0 010 5.6"/><path d="M18 14.9c2 .7 3.2 2.3 3.2 4.3"/></svg>
+        <span>群管理</span>
+      </button>
+      <button class="nav-item" data-view="profile" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9"/><path d="M10 19V4"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>
+        <span>群档案</span>
+      </button>
+      <button class="nav-item" data-view="timeline" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11M3 12h15M3 18h9"/><circle cx="19" cy="6" r="1.6"/></svg>
+        <span>时间线</span>
+      </button>
+      <button class="nav-item" data-view="decisions" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4"/><path d="M12 7l5 3.5V17"/><path d="M12 7L7 10.5V17"/><circle cx="12" cy="19.5" r="1.5"/></svg>
+        <span>决策记录</span>
+      </button>
+      <button class="nav-item" data-view="persona" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 20.2c0-3.6 3.2-6.2 7.2-6.2s7.2 2.6 7.2 6.2"/></svg>
+        <span>人设</span>
+      </button>
+      <button class="nav-item" data-view="prompt" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-5-6-5"/><path d="M12 19h8"/></svg>
+        <span>提示词</span>
+      </button>
+      <button class="nav-item" data-view="stickers" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.4"/><path d="M21 15l-4.5-4.5L7 20"/></svg>
+        <span>表情库</span>
+      </button>
+      <button class="nav-item" data-view="memory" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M12 4a4 4 0 0 1 4 4 3.5 3.5 0 0 1-1 6.9V19a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-4.1A3.5 3.5 0 0 1 8 8a4 4 0 0 1 4-4z"/><path d="M10 9h4"/><path d="M10 13h4"/></svg>
+        <span>记忆</span>
+      </button>
+      <button class="nav-item" data-view="settings" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-2.87 1.2V21a2 2 0 11-4 0v-.09A1.7 1.7 0 006.4 19.4l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.7 1.7 0 003 13.7H3a2 2 0 110-4h.09A1.7 1.7 0 004.6 8.4l-.06-.06a2 2 0 112.83-2.83l.06.06A1.7 1.7 0 0010.3 4.6V4a2 2 0 114 0v.09a1.7 1.7 0 002.87 1.2l.06-.06a2 2 0 112.83 2.83l-.06.06A1.7 1.7 0 0021 10.3H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.51 1.06z"/></svg>
+        <span>设置</span>
+      </button>
+      <button class="nav-item" data-view="logs" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5h9.5L19 8v12.5H5z"/><path d="M14 3.5V8h5"/><path d="M8 12.5h8M8 16h5"/></svg>
+        <span>日志</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="ver-line"><span class="dot-idle"></span><span id="side-version">v—</span></div>
+      <button id="logout-btn" class="btn btn-ghost btn-sm btn-block" type="button">退出登录</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="topbar">
+      <div>
+        <h2 id="view-title">概览</h2>
+        <p class="topbar-sub" id="view-sub">机器人与消息流水线总览</p>
+      </div>
+      <div class="topbar-right">
+        <span class="pill" id="conn-pill"><span class="dot dot-idle"></span><span>连接中…</span></span>
+      </div>
+    </header>
+
+    <div class="view-wrap">
+
+      <!-- ============ 概览 ============ -->
+      <div class="debug-banner hidden" id="debug-banner">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l9 16H3z"/><path d="M12 9v5"/><path d="M12 16.5v.01"/>
+        </svg>
+        <span><b>测试模式已开启</b> —— 作息、发言额度、群冷却、随机放弃全部失效，发言门槛已降低。测完请关掉。</span>
+        <button class="btn btn-sm btn-secondary" id="debug-off" type="button">立即关闭</button>
+      </div>
+      <section id="view-dashboard" class="view">
+        <div class="card status-bar" id="status-bar"></div>
+        <div class="stat-grid" id="stat-grid"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <h3>24 小时消息量</h3>
+              <span class="muted small" id="chart-legend">—</span>
+            </div>
+            <div class="chart" id="chart-bars"></div>
+            <div class="chart-axis" id="chart-axis"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>运行概览</h3></div>
+            <div class="kv-list" id="dash-meta"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 群管理 ============ -->
+      <section id="view-groups" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>群列表</h3>
+            <div class="head-actions">
+              <span class="muted small" id="groups-count">—</span>
+              <button class="btn btn-secondary btn-sm" id="groups-refresh" type="button">刷新</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>群号</th><th>群名</th><th class="col-toggle">启用</th><th>消息数</th>
+                  <th>今日额度</th><th>成员数</th><th>最后活跃</th>
+                </tr>
+              </thead>
+              <tbody id="groups-body"></tbody>
+            </table>
+          </div>
+          <div class="empty hidden" id="groups-empty">暂无群数据</div>
+        </div>
+      </section>
+
+      <!-- ============ 时间线 ============ -->
+      <section id="view-timeline" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>群消息时间线</h3>
+            <div class="head-actions">
+              <label class="field-label inline" for="tl-group">选择群</label>
+              <select id="tl-group" class="input select"></select>
+              <button class="btn btn-secondary btn-sm" id="tl-refresh" type="button">刷新</button>
+            </div>
+          </div>
+          <div id="tl-list" class="msg-list"></div>
+          <div class="empty hidden" id="tl-empty">该群暂无消息</div>
+          <div class="list-more">
+            <button class="btn btn-secondary btn-sm hidden" id="tl-more" type="button">加载更多</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 决策记录 ============ -->
+      <section id="view-decisions" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>决策记录</h3>
+            <div class="head-actions">
+              <label class="field-label inline" for="dec-group">筛选群</label>
+              <select id="dec-group" class="input select"></select>
+              <select id="dec-limit" class="input select">
+                <option value="50">最近 50 条</option>
+                <option value="100">最近 100 条</option>
+                <option value="200">最近 200 条</option>
+              </select>
+              <button class="btn btn-secondary btn-sm" id="dec-refresh" type="button">刷新</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="table table-dense">
+              <thead>
+                <tr>
+                  <th class="w-time">时间</th><th class="w-gid">群</th><th class="w-flag">发言</th>
+                  <th class="w-score">得分</th><th class="w-reason">原因</th>
+                  <th>触发消息</th><th class="w-draft">实际草稿</th>
+                </tr>
+              </thead>
+              <tbody id="decisions-body"></tbody>
+            </table>
+          </div>
+          <div class="empty hidden" id="decisions-empty">暂无决策记录</div>
+        </div>
+      </section>
+
+      <!-- ============ 人设 ============ -->
+      <section id="view-persona" class="view">
+        <div class="card persona-scope">
+          <div class="card-head">
+            <h3>人设作用范围</h3>
+            <span class="muted small" id="persona-scope-state">—</span>
+          </div>
+          <div class="scope-bar">
+            <select class="input select" id="persona-group">
+              <option value="">🌐 全局默认（所有群）</option>
+            </select>
+            <span class="scope-hint" id="persona-scope-hint">
+              默认所有群共用一份人设。想让某个群用不同的人设，选它再改。
+            </span>
+            <button class="btn btn-secondary btn-sm hidden" id="persona-reset" type="button">恢复跟随默认</button>
+          </div>
+        </div>
+        <div class="persona-grid">
+          <div class="card persona-editor">
+            <div class="card-head">
+              <h3>YAML 原文</h3>
+              <span class="muted small" id="persona-state">—</span>
+            </div>
+            <textarea id="persona-raw" class="code-area" spellcheck="false" placeholder="加载中…"></textarea>
+            <div id="persona-error" class="form-error hidden"></div>
+            <div class="card-foot">
+              <button class="btn btn-secondary" id="persona-validate" type="button">校验</button>
+              <button class="btn btn-primary" id="persona-save" type="button">保存</button>
+            </div>
+          </div>
+          <div class="card persona-preview">
+            <div class="card-head">
+              <h3>解析结果预览</h3>
+              <span class="muted small" id="persona-summary">—</span>
+            </div>
+            <div class="chips" id="persona-chips"></div>
+            <div class="tree" id="persona-tree"></div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ============ 提示词 ============ -->
+      <section id="view-prompt" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>底层提示词</h3>
+            <div class="head-actions">
+              <select class="input select" id="prompt-group">
+                <option value="0">🌐 全局默认（所有群）</option>
+              </select>
+              <button class="btn btn-secondary btn-sm" id="prompt-reset-all" type="button">本层全部恢复默认</button>
+            </div>
+          </div>
+          <p class="field-hint">
+            这里是模型实际收到的<b>全部</b>提示词。默认值写在代码里（qqbot/prompts.py），
+            改动存进数据库作为覆盖层，随时可以恢复默认。
+            <b>分两层</b>：全局对所有群生效，选了某个群就是只对它生效（优先级更高）。
+            <span class="badge" id="prompt-tier" style="margin-left:6px"></span>
+          </p>
+          <div class="prompt-layout">
+            <div class="prompt-list" id="prompt-list"></div>
+            <div class="prompt-editor">
+              <div class="prompt-editor-head">
+                <div>
+                  <div class="prompt-title" id="prompt-title">选一条开始编辑</div>
+                  <div class="muted small" id="prompt-key"></div>
+                </div>
+                <div class="prompt-actions">
+                  <span class="badge hidden" id="prompt-custom">已改</span>
+                  <button class="btn btn-secondary btn-sm" id="prompt-reset" type="button" disabled>恢复默认</button>
+                  <button class="btn btn-primary btn-sm" id="prompt-save" type="button" disabled>保存</button>
+                </div>
+              </div>
+              <div class="prompt-note muted small" id="prompt-note"></div>
+              <div class="prompt-ph muted small" id="prompt-ph"></div>
+              <textarea id="prompt-text" class="code-area prompt-text" spellcheck="false"
+                        placeholder="在左边选一条…"></textarea>
+              <div id="prompt-msg" class="form-error hidden"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>模型实际收到什么</h3>
+            <span class="muted small" id="prompt-preview-meta">—</span>
+          </div>
+          <p class="field-hint">
+            下面是用真实人设 + 真实配置渲染出来的结果，改完提示词立刻更新。
+            「系统提示词」每次生成都会发，「用户消息」里只有前半段是固定结构。
+          </p>
+          <div class="preview-tabs">
+            <button class="tab active" data-preview="system" type="button">系统提示词</button>
+            <button class="tab" data-preview="user" type="button">用户消息（示例）</button>
+          </div>
+          <pre class="prompt-preview" id="prompt-preview"></pre>
+        </div>
+      </section>
+
+      <!-- ============ 设置 ============ -->
+      <section id="view-settings" class="view">
+        <form id="settings-form" autocomplete="off">
+
+          <div class="card">
+            <div class="card-head"><h3>LLM</h3></div>
+            <div class="form-grid">
+              <div class="form-row span2">
+                <label class="field-label" for="set-base-url">接口地址 base_url</label>
+                <input id="set-base-url" class="input" type="text" placeholder="https://api.deepseek.com/v1">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-model">模型 model</label>
+                <input id="set-model" class="input" type="text" placeholder="deepseek-chat">
+              </div>
+                            <div class="form-row span2">
+                <div class="model-advice" id="model-advice">
+                  <div class="model-advice-head">
+                    <span class="field-label">模型适配</span>
+                    <button class="btn btn-secondary btn-sm" id="model-apply" type="button">应用推荐配置</button>
+                  </div>
+                  <div id="model-advice-body" class="muted small">检查中…</div>
+                </div>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-reply-model">回复专用模型</label>
+                <input id="set-reply-model" class="input" type="text" placeholder="留空则与上面相同">
+                <span class="field-hint">
+                  群聊回复要快。留空则用上面的模型。
+                  <b>重推理模型（如 step-5-preview）实测回一句要 10~30 秒</b>，
+                  还会把 token 预算全烧在思考上、正文返回空，不适合放在这里。
+                </span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-analysis-model">分析专用模型</label>
+                <input id="set-analysis-model" class="input" type="text" placeholder="留空则与上面相同">
+                <span class="field-hint">
+                  记忆抽取 / 群复盘 / 表情打标用。这些不在回复链路上，慢几秒无所谓，
+                  适合放重推理模型。
+                </span>
+              </div>
+<div class="form-row">
+                <label class="field-label" for="set-timeout">超时 timeout（秒）</label>
+                <input id="set-timeout" class="input" type="number" step="0.1" min="1">
+              </div>
+              <div class="form-row span2">
+                <label class="field-label" for="set-api-key">API Key</label>
+                <input id="set-api-key" class="input" type="password" autocomplete="new-password" placeholder="未配置">
+                <span class="field-hint" id="set-api-key-hint">留空则不修改已保存的密钥</span>
+              </div>
+              <div class="form-row span2">
+                <label class="switch switch-row">
+                  <input id="set-keep-thinking" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">保留思维链</span>
+                </label>
+                <span class="field-hint">
+                  推理模型先思考再回答，质量更好，但<b>思考量不可控</b> ——
+                  实测同一个模型：普通回复思考 200~330 token（约 3 秒）、
+                  记忆抽取 540~730（约 8 秒）、难推理题能烧 1800+ 还不一定想完。
+                  所以真正兜底的是下面这几个预算和超时，不是强度参数。
+                </span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-reasoning-effort">思维链强度 reasoning_effort</label>
+                <select class="input select" id="set-reasoning-effort">
+                  <option value="minimal">minimal</option>
+                  <option value="low">low</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                </select>
+                <span class="field-hint">注意：部分自建代理会静默忽略这个参数</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-reply-timeout">回复超时（秒）</label>
+                <input id="set-reply-timeout" class="input" type="number" step="1" min="5">
+                <span class="field-hint">想超过这个时间就不回了</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-reply-max-tokens">回复预算 reply_max_tokens</label>
+                <input id="set-reply-max-tokens" class="input" type="number" step="100" min="256">
+                <span class="field-hint">群聊回复。给紧了思考会把正文挤没</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-analysis-max-tokens">分析预算 analysis_max_tokens</label>
+                <input id="set-analysis-max-tokens" class="input" type="number" step="100" min="512">
+                <span class="field-hint">记忆抽取 / 群复盘 / 表情打标 / 看图</span>
+              </div>
+              <div class="form-row span2">
+                <label class="switch switch-row">
+                  <input id="set-debug-enabled" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">测试模式</span>
+                </label>
+                <span class="field-hint">
+                  忽略作息时间、发言额度、群冷却与随机放弃，发言门槛降到最低，
+                  方便随时验证。<b>不会</b>绕过安全拦截，也不会绕过群开关。
+                  打开后页面顶部会常驻一条橙色提醒。
+                </span>
+              </div>
+              <div class="form-row span2">
+                <label class="switch switch-row">
+                  <input id="set-debug-all" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">连纯闲聊也回（压力测试）</span>
+                </label>
+                <span class="field-hint">
+                  评分本身为 0 的消息（既不相关、也没人叫它）也会被放行。
+                  <b>它会接每一句话，会刷屏</b>，只在你盯着的时候开。
+                </span>
+              </div>
+
+              <div class="form-row span2">
+                <label class="field-label" for="dry-text">试生成（只跑模型，不发送到群）</label>
+                <div class="dry-row">
+                  <input id="dry-text" class="input" type="text"
+                         placeholder="模拟一条群友消息，看看它会怎么回">
+                  <button class="btn btn-secondary" id="dry-run" type="button">试生成</button>
+                </div>
+                <label class="switch switch-row" style="margin-top:8px">
+                  <input id="dry-force" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">强制生成（绕开决定层）</span>
+                </label>
+                <span class="field-hint" id="dry-out">
+                  不勾选时走完整链路：决定层判断该不该说 → 人设 prompt → 模型 → 去 AI 味。
+                  勾上就跳过决定层，单纯用来试模型和 prompt。
+                </span>
+              </div>
+
+              <div class="form-row">
+                <label class="field-label" for="set-temperature">temperature <span class="val" id="val-temperature">—</span></label>
+                <input id="set-temperature" class="range" type="range" min="0" max="2" step="0.05">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-max-tokens">max_tokens</label>
+                <input id="set-max-tokens" class="input" type="number" step="1" min="1">
+              </div>
+            </div>
+            <div class="card-foot">
+              <button class="btn btn-secondary" id="llm-test" type="button">测试 LLM 连接</button>
+              <span class="muted small" id="llm-test-result"></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>行为</h3></div>
+            <div class="form-grid">
+              <div class="form-row">
+                <label class="field-label" for="set-threshold">threshold <span class="val" id="val-threshold">—</span></label>
+                <input id="set-threshold" class="range" type="range" min="0" max="1" step="0.01">
+                <span class="field-hint">发言得分阈值，越高越少说话</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-give-up">give_up_prob <span class="val" id="val-give-up">—</span></label>
+                <input id="set-give-up" class="range" type="range" min="0" max="1" step="0.01">
+                <span class="field-hint">已决定发言后放弃的概率</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-group-cooldown">group_cooldown（秒）</label>
+                <input id="set-group-cooldown" class="input" type="number" step="0.1" min="0">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-debounce">debounce（秒）</label>
+                <input id="set-debounce" class="input" type="number" step="0.1" min="0">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-max-wait">max_wait（秒）</label>
+                <input id="set-max-wait" class="input" type="number" step="0.1" min="0">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-max-batch">max_batch（条）</label>
+                <input id="set-max-batch" class="input" type="number" step="1" min="1">
+              </div>
+              <div class="form-row span2 switch-row">
+                <label class="switch">
+                  <input id="set-mention-only" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">mention_only —— 仅在被 @ 时考虑发言</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>打字节奏</h3>
+              <span class="muted small" id="typing-preview">—</span>
+            </div>
+            <div class="form-grid">
+              <div class="form-row span2">
+                <span class="field-hint">
+                  拟人的关键：<b>真人不可能秒发</b>。一条消息的耗时 = 反应时间（看到消息到开始打字）
+                  + 每个字耗时 × 字数，每条气泡各算一次。表情包按"点一下就发"算，不按字数。
+                </span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-typing-min">每个字最快（毫秒）</label>
+                <input id="set-typing-min" class="input" type="number" step="10" min="10">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-typing-max">每个字最慢（毫秒）</label>
+                <input id="set-typing-max" class="input" type="number" step="10" min="10">
+                <span class="field-hint">手机上打中文约 250~500ms/字；180 已经算手快的</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-typing-floor">最短延迟（秒）</label>
+                <input id="set-typing-floor" class="input" type="number" step="0.1" min="0">
+                <span class="field-hint">再短的消息也至少等这么久（打「在」也要拿起手机）</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-typing-ceil">单条上限（秒）</label>
+                <input id="set-typing-ceil" class="input" type="number" step="0.5" min="1">
+                <span class="field-hint">再久就不像打字慢，像掉线了</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-reaction-min">反应时间下限（秒）</label>
+                <input id="set-reaction-min" class="input" type="number" step="0.1" min="0">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-reaction-max">反应时间上限（秒）</label>
+                <input id="set-reaction-max" class="input" type="number" step="0.1" min="0">
+                <span class="field-hint">0.4 秒就回一句「在」太快，像自动应答</span>
+              </div>
+              <div class="form-row span2">
+                <label class="switch switch-row">
+                  <input id="set-typing-first" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">第一条也计入打字时间</span>
+                </label>
+                <span class="field-hint">
+                  应保持开启。关掉后第一条只有反应时间就发出去了 —— 曾经就是这样，
+                  「在」两个字 0.4 秒到群里，一眼假。
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>作息与额度</h3></div>
+            <div class="form-grid">
+              <div class="form-row">
+                <label class="field-label" for="set-active-from">活跃开始 active_from</label>
+                <input id="set-active-from" class="input" type="time">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-active-to">活跃结束 active_to</label>
+                <input id="set-active-to" class="input" type="time">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-jitter">jitter_minutes（分钟）</label>
+                <input id="set-jitter" class="input" type="number" step="1" min="0">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-hour-budget">单群每小时额度 group_hour_budget</label>
+                <input id="set-hour-budget" class="input" type="number" step="1" min="0">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-day-budget">单群每日额度 group_day_budget</label>
+                <input id="set-day-budget" class="input" type="number" step="1" min="0">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-global-budget">全局每日额度 global_day_budget</label>
+                <input id="set-global-budget" class="input" type="number" step="1" min="0">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>安全</h3></div>
+            <div class="form-grid">
+              <div class="form-row">
+                <label class="field-label" for="set-max-chars">单条最大字数 max_chars_per_bubble</label>
+                <input id="set-max-chars" class="input" type="number" step="1" min="1">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-max-bubbles">最多气泡数 max_bubbles</label>
+                <input id="set-max-bubbles" class="input" type="number" step="1" min="1">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>OCR / 看图</h3>
+              <span class="muted small" id="ocr-state">—</span>
+            </div>
+            <div class="form-grid">
+              <div class="form-row">
+                <label class="field-label" for="set-ocr-backend">OCR 后端</label>
+                <select class="input select" id="set-ocr-backend">
+                  <option value="napcat">napcat —— 快、免费、只有文字</option>
+                  <option value="paddleocr">paddleocr —— 云端、慢、有公式表格</option>
+                  <option value="both">both —— 推荐：快的先回，慢的后台跑</option>
+                </select>
+                <span class="field-hint">
+                  NapCat 自带的 OCR 同步秒回但只有纯文字；
+                  PaddleOCR-VL 输出 markdown（公式变 LaTeX、表格保结构），
+                  但实测<b>快则 6 秒、慢则 94 秒</b>，所以它永远在后台跑，结果按图缓存。
+                </span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-paddle-model">模型</label>
+                <input id="set-paddle-model" class="input" type="text" placeholder="PaddleOCR-VL-1.6">
+              </div>
+              <div class="form-row span2">
+                <label class="switch switch-row">
+                  <input id="set-paddle-enabled" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">启用 PaddleOCR-VL</span>
+                </label>
+                <span class="field-hint">
+                  关闭时只有 NapCat 的快速 OCR。开启后按上面的后端策略工作。
+                </span>
+              </div>
+              <div class="form-row span2">
+                <label class="field-label" for="set-paddle-token">PaddleOCR Token</label>
+                <input id="set-paddle-token" class="input" type="password"
+                       autocomplete="new-password" placeholder="未配置">
+                <span class="field-hint">留空则不修改；填入后会自动写进 .env 的 PADDLEOCR_TOKEN</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-paddle-poll">轮询间隔（秒）</label>
+                <input id="set-paddle-poll" class="input" type="number" step="1" min="1">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-paddle-timeout">单任务超时（秒）</label>
+                <input id="set-paddle-timeout" class="input" type="number" step="10" min="30">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-paddle-maxchars">markdown 截断（字）</label>
+                <input id="set-paddle-maxchars" class="input" type="number" step="100" min="200">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-paddle-minside">最小边长（像素）</label>
+                <input id="set-paddle-minside" class="input" type="number" step="10" min="0">
+                <span class="field-hint">太小的图（表情包）不值得送云端</span>
+              </div>
+              <div class="form-row span2">
+                <span class="field-label">文档增强（拍照/扫描件才需要，开了更慢）</span>
+                <div class="toggles-row">
+                  <label class="switch switch-sm">
+                    <input id="set-paddle-orient" type="checkbox">
+                    <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                    <span class="switch-text">方向分类</span>
+                  </label>
+                  <label class="switch switch-sm">
+                    <input id="set-paddle-unwarp" type="checkbox">
+                    <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                    <span class="switch-text">去弯曲</span>
+                  </label>
+                  <label class="switch switch-sm">
+                    <input id="set-paddle-chart" type="checkbox">
+                    <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                    <span class="switch-text">图表识别</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>网络搜索</h3>
+              <span class="muted small" id="search-state">—</span>
+            </div>
+            <div class="form-grid">
+              <div class="form-row span2">
+                <label class="switch switch-row">
+                  <input id="set-search-enabled" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">启用网络搜索</span>
+                </label>
+                <span class="field-hint">
+                  给模型补上"知识截止之后"的信息。<b>关键不是能不能搜，而是什么时候该搜</b> ——
+                  每条消息都搜既慢又蠢，所以有独立的时效性判定，
+                  只有「今天/最新/多少钱」这类明确的实时信息需求才触发，被点名问时阈值放宽。
+                </span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-search-provider">供应商</label>
+                <select class="input select" id="set-search-provider">
+                  <option value="ollama">ollama（Ollama 网页搜索）</option>
+                  <option value="tavily">tavily</option>
+                  <option value="bocha">bocha（博查）</option>
+                  <option value="serper">serper</option>
+                  <option value="searxng">searxng（自建）</option>
+                  <option value="generic">generic（OpenAI 风格接口）</option>
+                </select>
+                <span class="field-hint">各家请求体形状不同，已分别适配；generic 用宽容解析兜底</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-search-base">接口地址 base_url</label>
+                <input id="set-search-base" class="input" type="text" placeholder="留空用默认">
+              </div>
+              <div class="form-row span2">
+                <label class="field-label" for="set-search-key">API Key</label>
+                <input id="set-search-key" class="input" type="password"
+                       autocomplete="new-password" placeholder="未配置">
+                <span class="field-hint">留空则不修改；填入后会自动写进 .env 的 SEARCH_API_KEY</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-search-results">返回结果数</label>
+                <input id="set-search-results" class="input" type="number" step="1" min="1" max="10">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-search-timeout">超时（秒）</label>
+                <input id="set-search-timeout" class="input" type="number" step="1" min="3">
+                <span class="field-hint">搜索挂在回复链路上，慢了这个回复就不像人了</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-search-threshold">触发阈值 <span class="val" id="val-search-threshold">—</span></label>
+                <input id="set-search-threshold" class="range" type="range" min="0.2" max="1.5" step="0.05">
+                <span class="field-hint">越高越少搜。0.5 = 命中一个时效词加疑问句才搜</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-search-snippet">摘要截断（字）</label>
+                <input id="set-search-snippet" class="input" type="number" step="50" min="80">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-search-hourly">每小时上限</label>
+                <input id="set-search-hourly" class="input" type="number" step="1" min="0">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-search-daily">每日上限</label>
+                <input id="set-search-daily" class="input" type="number" step="1" min="0">
+              </div>
+              <div class="form-row span2">
+                <label class="switch switch-row">
+                  <input id="set-search-mention" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">被 @ 时放宽阈值</span>
+                </label>
+                <span class="field-hint">人家专门点名问了，含糊回答很减分，所以值得多搜一点</span>
+              </div>
+              <div class="form-row span2">
+                <label class="field-label" for="search-test-q">测试搜索</label>
+                <div class="dry-row">
+                  <input id="search-test-q" class="input" type="text" placeholder="今天的新闻">
+                  <button class="btn btn-secondary" id="search-test-btn" type="button">测试</button>
+                </div>
+                <span class="field-hint" id="search-test-out">走真实请求，用来确认 key 和字段对不对</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>B 站视频</h3>
+              <span class="muted small" id="bili-state">—</span>
+            </div>
+            <div class="form-grid">
+              <div class="form-row span2">
+                <label class="switch switch-row">
+                  <input id="set-bili-enabled" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">启用 B 站视频理解</span>
+                </label>
+                <span class="field-hint">
+                  群友发了 B 站链接就自动取字幕喂给模型，让它知道视频讲了什么。
+                  <b>AI 字幕必须登录态</b> —— 游客态拿不到，所以 SESSDATA 是必需的。
+                </span>
+              </div>
+              <div class="form-row span2">
+                <div class="bili-login" id="bili-login">
+                  <div class="bili-login-head">
+                    <span class="field-label">登录状态</span>
+                    <span class="bili-login-state" id="bili-login-state">检查中…</span>
+                    <button class="btn btn-secondary btn-sm" id="bili-login-btn" type="button">扫码登录</button>
+                  </div>
+                  <div class="bili-qr hidden" id="bili-qr-box">
+                    <img id="bili-qr-img" alt="扫码登录二维码">
+                    <div class="bili-qr-hint">
+                      <b>用哔哩哔哩 App 扫码</b>
+                      <span id="bili-qr-msg">等待扫码…</span>
+                      <span class="muted small">二维码约 3 分钟有效，过期后点「重新获取」</span>
+                    </div>
+                  </div>
+                  <span class="field-hint">
+                    AI 字幕必须登录态才下发，Cookie 掉了这里会提示。
+                    扫码成功后会自动写入 .env 并<b>立即生效，不用重启</b>。
+                  </span>
+                </div>
+              </div>
+              <div class="form-row span2">
+                <label class="field-label" for="set-bili-cookie">或手动填 Cookie（含 SESSDATA）</label>
+                <input id="set-bili-cookie" class="input" type="password"
+                       autocomplete="new-password" placeholder="未配置">
+                <span class="field-hint">
+                  留空则不修改；填入后自动写进 .env 的 BILIBILI_COOKIE。
+                  没有它只能拿 CC 字幕，AI 字幕一律为空。
+                </span>
+              </div>
+              <div class="form-row">
+                <label class="switch switch-sm">
+                  <input id="set-bili-link" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">自动解析群里的链接</span>
+                </label>
+              </div>
+              <div class="form-row">
+                <label class="switch switch-sm">
+                  <input id="set-bili-search" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">允许主动搜 B 站</span>
+                </label>
+              </div>
+              <div class="form-row">
+                <label class="switch switch-sm">
+                  <input id="set-bili-asr" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">无字幕时用音频转写兜底</span>
+                </label>
+                <span class="field-hint">取音轨 → ffmpeg 转 16k 单声道 → 送去转写</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-bili-maxasr">兜底最长时长（秒）</label>
+                <input id="set-bili-maxasr" class="input" type="number" step="30" min="60">
+                <span class="field-hint">太长的视频不做转写，慢且贵</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-bili-maxchars">字幕进 prompt 截断（字）</label>
+                <input id="set-bili-maxchars" class="input" type="number" step="200" min="300">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-bili-results">搜索结果数</label>
+                <input id="set-bili-results" class="input" type="number" step="1" min="1" max="10">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>音频转文字</h3>
+              <span class="muted small" id="asr-state">—</span>
+            </div>
+            <div class="form-grid">
+              <div class="form-row span2">
+                <label class="switch switch-row">
+                  <input id="set-asr-enabled" type="checkbox">
+                  <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                  <span class="switch-text">启用音频转文字（StepFun ASR）</span>
+                </label>
+                <span class="field-hint">
+                  给 B 站无字幕视频兜底。走的是<b>同步上传</b>接口
+                  <code>/v1/audio/transcriptions</code> —— 直接传文件，<b>不需要公网地址</b>。
+                  只支持中英文，不支持中文方言。
+                </span>
+              </div>
+              <div class="form-row span2">
+                <label class="field-label" for="set-asr-key">STEPFUN_API_KEY</label>
+                <input id="set-asr-key" class="input" type="password"
+                       autocomplete="new-password" placeholder="未配置">
+                <span class="field-hint">留空则不修改；填入后自动写进 .env 的 STEPFUN_API_KEY</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-asr-model">模型</label>
+                <input id="set-asr-model" class="input" type="text" placeholder="stepaudio-2.5-asr">
+              </div>
+              <div class="form-row">
+                <label class="field-label" for="set-asr-timeout">超时（秒）</label>
+                <input id="set-asr-timeout" class="input" type="number" step="30" min="30">
+                <span class="field-hint">转写比文本慢得多，给宽一点</span>
+              </div>
+              <div class="form-row span2">
+                <label class="field-label" for="set-asr-hotwords">热词</label>
+                <input id="set-asr-hotwords" class="input" type="text" placeholder="用逗号分隔，如：原神,星穹铁道">
+                <span class="field-hint">能明显改善专有名词识别</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="save-bar">
+            <span class="muted small" id="settings-state"></span>
+            <button class="btn btn-primary" id="settings-save" type="submit">保存设置</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ============ 日志 ============ -->
+      <section id="view-logs" class="view">
+        <div class="card card-flush">
+          <div class="card-head">
+            <h3>实时日志</h3>
+            <div class="head-actions">
+              <span class="pill" id="log-status"><span class="dot dot-idle"></span><span>未连接</span></span>
+              <label class="switch switch-sm">
+                <input id="log-autoscroll" type="checkbox" checked>
+                <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                <span class="switch-text">自动滚动</span>
+              </label>
+              <button class="btn btn-secondary btn-sm" id="log-clear" type="button">清屏</button>
+            </div>
+          </div>
+          <div class="log-view" id="log-view"></div>
+        </div>
+      </section>
+
+      <section id="view-profile" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>群档案</h3>
+            <div class="head-actions">
+              <select class="input select" id="pf-group"><option value="">请选择群</option></select>
+              <button class="btn btn-secondary btn-sm" id="pf-refresh" type="button">刷新</button>
+            </div>
+          </div>
+          <div class="stat-grid" id="pf-stats"></div>
+          <div class="empty hidden" id="pf-empty">选择上方的一个群，查看机器人对它的理解</div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>入群冷启动与伪装存活</h3>
+            <div class="head-actions">
+              <span class="muted small" id="ob-status">—</span>
+              <button class="btn btn-secondary btn-sm" id="ob-restart" type="button">重新分析</button>
+            </div>
+          </div>
+          <p class="field-hint">
+            打开发言权限时会先读一遍群历史，搞清楚这是什么群、大家在聊什么，
+            把看不懂的记下来，之后挑时机在群里问 —— 真人进新群就是这么融入的。
+            下面同时是"伪装存活"的账本：一天没被识破算活过一天，
+            被质疑扣分，<b>群里有人聊天却几乎不发言也算失败</b>（防止靠少说话降低暴露率）。
+          </p>
+          <div class="stat-grid" id="ob-stats"></div>
+          <div class="ob-questions" id="ob-questions"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>24 小时活跃度</h3><span class="muted small" id="pf-peak">—</span></div>
+            <div class="chart" id="pf-hours" style="height:150px"></div>
+            <div class="chart-axis" id="pf-hours-axis"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>群策略</h3><span class="muted small" id="pf-policy-state">—</span></div>
+            <div class="kv-list" id="pf-policy"></div>
+            <div class="head-actions" style="margin-top:12px">
+              <button class="btn btn-secondary btn-sm" id="pf-reset" type="button">重置策略</button>
+              <span class="muted small">回滚到出厂设置</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>核心成员</h3></div>
+            <div class="kv-list" id="pf-members"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>群内黑话</h3></div>
+            <div id="pf-slang"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>进化曲线</h3><span class="muted small" id="pf-reward-sum">—</span></div>
+          <div class="chart" id="pf-reward" style="height:140px"></div>
+          <div class="chart-axis" id="pf-reward-axis"></div>
+        </div>
+      </section>
+
+      <section id="view-stickers" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>表情库</h3>
+            <div class="head-actions">
+              <label class="switch switch-sm">
+                <input id="sk-include-blocked" type="checkbox">
+                <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                <span class="switch-text">含已封禁</span>
+              </label>
+              <button class="btn btn-secondary btn-sm" id="sk-refresh" type="button">刷新</button>
+            </div>
+          </div>
+          <div class="stat-grid" id="sk-stats"></div>
+          <div class="empty hidden" id="sk-empty">还没有收藏任何表情。等群友把某个表情用成"通用梗"就会自动收进来。</div>
+          <div class="sticker-grid" id="sk-grid"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>收藏规则</h3><span class="muted small">没收进来的原因</span></div>
+            <div class="kv-list" id="sk-rules"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>可用情绪</h3><span class="muted small" id="sk-mood-count">—</span></div>
+            <div id="sk-moods" style="padding:4px 0"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>QQ 内置表情</h3>
+            <span class="muted small" id="sk-face-count">—</span>
+          </div>
+          <div class="face-grid" id="sk-faces"></div>
+        </div>
+      </section>
+
+      <section id="view-memory" class="view">
+        <div class="card">
+          <div class="card-head">
+            <h3>群记忆</h3>
+            <div class="head-actions">
+              <select class="input select" id="mem-group"><option value="">全部群</option></select>
+              <label class="switch switch-sm">
+                <input id="mem-include-invalid" type="checkbox" checked>
+                <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+                <span class="switch-text">含已失效</span>
+              </label>
+              <button class="btn btn-secondary btn-sm" id="mem-refresh" type="button">刷新</button>
+            </div>
+          </div>
+          <div class="stat-grid" id="mem-stats"></div>
+          <div class="empty hidden" id="mem-empty">
+            还没有记忆。机器人在群里每积累 40 条消息会抽取一次，
+            只记"明天还成立、以后用得上、上下文推不出来"的内容。
+          </div>
+          <div class="mem-list" id="mem-list"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>类型分布</h3><span class="muted small">决定各自记多久</span></div>
+            <div class="kv-list" id="mem-types"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>各群条数</h3><span class="muted small" id="mem-cap">—</span></div>
+            <div class="kv-list" id="mem-groups"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

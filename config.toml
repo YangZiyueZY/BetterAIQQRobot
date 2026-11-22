@@ -1,0 +1,252 @@
+# 非敏感配置。敏感项（各种 token/key）走 .env。
+# 管理面板保存设置时会写到 data/settings.json 作为覆盖层，
+# 本文件的优先级最低：config.toml  <  data/settings.json  <  .env
+
+[onebot]
+ws_url = "ws://127.0.0.1:3001"
+request_timeout = 15.0      # 单次 API 调用超时（秒）
+heartbeat_timeout = 90.0    # 超过这个时间没收到任何事件就认为连接已死
+reconnect_min = 1.0         # 重连退避下限
+reconnect_max = 60.0        # 重连退避上限
+
+[storage]
+db_path = "data/qqbot.db"
+retention_days = 90         # 群聊原文保留天数
+
+[web]
+enabled = true
+# "127.0.0.1"  = 只有本机能访问（最安全）
+# "0.0.0.0"    = 局域网可访问，靠 WEB_TOKEN 认证
+# "192.168.x.x" = 只绑某张网卡，更严格，但换 IP 后要改
+host = "0.0.0.0"
+port = 8090
+
+[llm]
+base_url = "https://api.deepseek.com/v1"   # OpenAI 兼容协议，豆包/Qwen/vLLM 同理
+model = "deepseek-chat"
+temperature = 0.9           # 口语化需要高温度
+max_tokens = 400
+timeout = 60.0
+max_concurrency = 2         # 同时进行的 LLM 请求上限
+
+[behavior]
+# --- 决定层：该不该说话 ---
+threshold = 0.55            # 低于这个分数不说话
+give_up_prob = 0.30         # 即使过线也主动放弃的概率（真人不是有求必应）
+mention_only = false        # true = 只有被 @ 才可能开口（最保守）
+group_cooldown = 180.0      # 同群两次自发发言的最小间隔（秒）
+name_priority = 0.60        # 消息里出现名字/外号的加分
+topic_priority = 0.50       # 命中精通领域的加分
+idle_priority = 0.20        # 群冷场时抛梗的加分
+
+# --- 蓄水池：防抖批处理 ---
+debounce = 5.0              # 新消息后等这么久，期间再来消息就重置
+max_wait = 30.0             # 距首条消息最多等这么久就强制触发
+max_batch = 15              # 一批最多攒多少条
+
+# --- 作息 ---
+active_from = "08:30"
+active_to = "23:30"
+jitter_minutes = 45         # 每天上下线时间的随机偏移上限
+away_prob_per_hour = 0.35   # 每小时随机"外出"的概率
+group_hour_budget = 8       # 单群每小时发言上限
+group_day_budget = 40       # 单群每天发言上限
+global_day_budget = 200     # 全局每天发言上限
+
+# --- 生成长度约束（去 AI 味的关键） ---
+max_chars_per_bubble = 40   # 单条气泡字数上限，超过按标点切分
+max_bubbles = 3             # 一次最多分成几条发
+# --- 打字节奏 ---
+# 拟人的关键：真人不可能秒发。用"每个字花多少毫秒"来配，好对着真实手感调。
+# 参考：手机上打中文大约 2~4 字/秒（250~500ms/字），键盘上快些但也在 5 字/秒上下。
+typing_ms_per_char_min = 180.0  # 打一个字最快多少毫秒（手快的人 ≈ 5.5 字/秒）
+typing_ms_per_char_max = 420.0  # 打一个字最慢多少毫秒（边想边打 ≈ 2.4 字/秒）
+typing_min_delay = 1.0          # 再短的消息也至少等这么久（秒）
+typing_max_delay = 12.0         # 单条打字时间上限（秒），再久就像掉线了
+reaction_delay_min = 0.6        # 看到消息到开始打字的反应时间下界（秒）
+reaction_delay_max = 2.0        # 反应时间上界（秒）
+typing_first_bubble = true      # 第一条是否也计入打字时间（应保持 true）
+face_keep_prob = 0.35           # 模型给了 QQ 表情时实际保留的概率。真人不会每条都配，
+                                # 光靠 prompt 压不住（实测模型会无视），在后处理兜一道
+context_messages = 30       # 每次送进 LLM 的上下文消息条数
+
+# --- 记忆 ---
+memory_enabled = true
+memory_recall_top = 5       # 每次召回几条长期记忆
+
+[bot]
+log_level = "INFO"
+persona_path = "persona.yaml"
+# 群白名单：留空 = 所有群默认关闭（在面板里手动开）；
+# 填入 group_id = 首次发现该群时自动启用
+groups = []
+
+# ==========================================================================
+# 表情包
+# ==========================================================================
+[sticker]
+enabled = true
+# --- 收藏别人发的表情包 ---
+auto_collect = true
+# 是否调用 add_custom_face 真的写进 QQ 收藏夹。
+# **这是写操作，会改动账号状态**，所以默认关。开了之后手机上也能看到。
+write_to_qq = false
+collect_prob = 0.60          # 满足条件也不是必收 —— 真人不会每个都存
+collect_min_seen = 2         # 至少被看到这么多次，才算"本群通用梗"
+collect_min_users = 2        # 或者至少这么多不同的人用过
+collect_daily_limit = 3      # 一天最多存几张
+per_user_hourly = 1          # 同一来源一小时最多贡献一张
+capacity = 300               # 库容量，满了淘汰最没用的
+max_size_kb = 2048
+
+# --- 使用 ---
+send_rate = 0.12             # 发言中带自定义表情包的基础比例
+group_cooldown_days = 3      # 同一张多少天内不在同群重复
+recent_window = 20
+explore_rate = 0.15          # ε-greedy 探索率：偶尔翻出老表情
+
+# --- 语义标注 ---
+tag_min_observations = 3     # 攒够几条"人类用法"才敢打标签
+tag_batch = 5
+
+# ==========================================================================
+# 多模态
+# ==========================================================================
+[media]
+enabled = true
+# 图片一律交给多模模型看（OCR 只能读字，画面里的信息它拿不到），
+# 所以看图预算是**唯一的成本闸门**
+vision_enabled = true
+vision_hourly_budget = 10    # 单群每小时最多描述几张
+vision_daily_budget = 200
+vision_wait = 15.0           # 生成回复前最多等看图多久（秒）。用户发的图多半就是要聊的，
+                             # 值得等；实测看图 5~19 秒（小图 5~7 秒），8 秒经常白等
+vision_max_side = 768        # 送模型前压到这个边长 —— 直接决定成本
+# 这两个是 NapCat 自带的，不花钱
+ocr_enabled = true
+# OCR 后端：
+#   napcat    NapCat 自带，同步、免费、秒回，只有纯文字
+#   paddleocr 云端 PaddleOCR-VL，输出 markdown（公式变 LaTeX、表格保结构），很慢
+#   both      推荐 —— NapCat 先把消息回掉，PaddleOCR 后台跑并缓存结果
+ocr_backend = "napcat"
+ptt_enabled = true           # 语音转文字
+retention_days = 60
+
+# ==========================================================================
+# 自进化
+# ==========================================================================
+[evolution]
+# 总开关。建议先只跑统计画像（不花钱、零风险）一周，确认数据合理再打开。
+enabled = false
+profile_enabled = true       # 群画像：纯统计，无风险
+feedback_enabled = true      # 奖励信号采集
+harvest_delay = 300.0        # 发言后多久去收获信号（QQ 表情回应有保留期）
+profile_every = 200          # 每多少条群消息重算一次画像
+reflect_every = 500          # 每多少条跑一次 LLM 复盘
+memory_capacity_per_group = 500
+
+# ==========================================================================
+# 测试模式
+# ==========================================================================
+[debug]
+# 打开后：作息失效（永远在线）、发言额度不生效、群冷却归零、
+# 不随机放弃、发言门槛降到下面这个值。
+#
+# **不会绕过 safety 层，也不会绕过群开关。**
+# 面板上会显示一条橙色横幅提醒；测完记得关。
+enabled = false
+relax_threshold = 0.15      # 测试模式下的发言门槛（0.15 = 有人提问就开口）
+respond_to_all = false      # 连纯闲聊也回。会刷屏，只在盯着的时候开
+
+# ==========================================================================
+# PaddleOCR-VL 云端 OCR
+# ==========================================================================
+# 任务制接口：提交 -> 轮询 -> 取结果。实测快则 6 秒、慢则 94 秒，
+# 所以它永远在后台跑，结果按图片哈希缓存，下次遇到同一张图直接命中。
+#
+# token 走 .env 的 PADDLEOCR_TOKEN（面板里填会自动写进去），不存 settings.json。
+[paddleocr]
+enabled = false
+base_url = "https://paddleocr.aistudio-app.com/api/v2/ocr/jobs"
+model = "PaddleOCR-VL-1.6"
+poll_interval = 5.0          # 轮询间隔（秒）
+submit_timeout = 60.0        # 单次 HTTP 超时
+job_timeout = 300.0          # 单个任务最长等多久
+# 下面三个是给"拍照/扫描件"用的，普通截图没必要开，开了更慢
+doc_orientation = false      # 版面方向分类（歪着的照片）
+doc_unwarping = false        # 文档去弯曲（拍纸质文档）
+chart_recognition = false    # 图表识别
+max_chars = 3000             # markdown 截断上限，别把上下文吃光
+min_side = 200               # 太小的图（表情包）不值得送云端
+
+# ==========================================================================
+# 网络搜索
+# ==========================================================================
+# 给模型补上"知识截止之后"的信息。关键不是能不能搜，而是**什么时候该搜** ——
+# 群里每句话都去搜既慢又蠢，所以有独立的时效性判定，只有明确的信息需求才触发。
+#
+# api_key 走 .env 的 SEARCH_API_KEY（面板里填会自动写进去）。
+[search]
+enabled = false
+# tavily / bocha（博查）/ serper / searxng（自建）/ generic
+provider = "tavily"
+base_url = ""                # 留空用该 provider 的默认地址
+max_results = 3
+timeout = 12.0               # 搜索挂在回复链路上，慢了这个回复就不像人了
+need_threshold = 0.5         # 时效性判定阈值，越高越少搜
+hourly_budget = 10           # 防跑飞的护栏
+daily_budget = 80
+max_snippet_chars = 300      # 每条结果的摘要截断
+search_when_mention = true   # 被点名问时放宽阈值（人家专门问的，含糊很减分）
+
+# ==========================================================================
+# B 站视频理解
+# ==========================================================================
+# 群友发 B 站链接 -> 取字幕/转写 -> 喂给模型，让它知道视频讲了什么。
+#
+# 核心事实（实测）：**AI 字幕必须登录态**。游客态返回空列表 +
+# need_login_subtitle: true，连 buvid3/buvid4 都没用，不存在免登录取巧路径。
+# cookie 走 .env 的 BILIBILI_COOKIE（含 SESSDATA，是凭据，不落 settings.json）。
+[bilibili]
+enabled = true
+enabled_link = true          # 自动解析群里发的链接
+enabled_search = true        # 允许主动搜 B 站
+max_links_per_message = 1    # 一条消息最多解析几个，防刷屏
+max_chars = 3000             # 字幕进 prompt 的截断
+prefer_lan = "zh"
+dedupe_repeat = true
+timeout = 20.0
+asr_fallback = true          # 无字幕时用音频转写兜底
+# 注意：判的是**当前这个分P**的时长（VideoInfo.media_duration），不是全片总时长。
+# 多 P 视频顶层 duration 是各 P 之和（实测某 4P PV 顶层 713s、P1 只有 176s），
+# 以前拿总时长判会把能转的视频误杀。
+# step_plan 免费通道 176s 音频只要 2.4 秒，长音频 SSE 会自动切段，所以放宽到 30 分钟。
+max_asr_seconds = 1800       # 超过这么长就不转写了
+search_results = 5
+search_order = "totalrank"   # totalrank/click/pubdate/danmaku
+
+# ==========================================================================
+# 音频转文字（StepFun ASR）
+# ==========================================================================
+# 两条同步通道，能力范围不一样（别拿一条的 404 断定"没有这个能力"）：
+#   upload  {base_url}/audio/transcriptions  multipart 上传，一次返回全文
+#   sse     {base_url}/audio/asr/sse         JSON + base64，SSE 返回全文
+# transport = "auto" 时按 base_url 选：
+#   * base_url 指向 **step_plan** → 必走 sse（那个前缀下 upload 是网关 404）
+#   * base_url 指向开放平台 /v1   → 走 upload，但**要有余额**（否则 402）
+# 想用免费套餐跑 ASR，就把 base_url 改成 https://api.stepfun.com/step_plan/v1。
+# （异步的 asr/file/submit 要 URL 公网可达，只有你有公网地址时才用得上。）
+# 只支持中英文，不支持中文方言。api_key 走 .env 的 STEPFUN_API_KEY。
+[asr]
+enabled = true
+# 走 step_plan 免费通道：它的 ASR 只有 SSE 一条（transport=auto 会自动挑对）。
+# 实测 176 秒音频 2.4 秒出全文、不扣余额；撞 402 才说明是 /v1 没钱。
+# 想回开放平台就换成 https://api.stepfun.com/v1
+base_url = "https://api.stepfun.com/step_plan/v1"
+model = "stepaudio-2.5-asr"
+transport = "auto"             # auto / sse / upload
+language = "zh"
+timeout = 300.0
+poll_interval = 2.0
+job_timeout = 600.0
+hotwords = []

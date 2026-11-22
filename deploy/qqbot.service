@@ -1,0 +1,23 @@
+[Unit]
+Description=QQAIRobot — QQ 拟人角色机器人 + 管理面板
+After=network-online.target napcat.service
+Wants=napcat.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/QQAIRobot
+ExecStart=%h/QQAIRobot/.venv/bin/python -m qqbot
+Restart=always
+RestartSec=5
+
+# 日志进 journal，用 journalctl --user -u qqbot -f 看
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=qqbot
+
+# 优雅退出：给 asyncio 收尾（关 WS、purge、flush 决策）留时间
+KillSignal=SIGINT
+TimeoutStopSec=20
+
+[Install]
+WantedBy=default.target

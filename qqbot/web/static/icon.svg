@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="QQ 机器人控制台">
+  <title>QQ 机器人控制台</title>
+  <defs>
+    <linearGradient id="qqbBadge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E2906F"/>
+      <stop offset="1" stop-color="#C5623F"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 圆角方形底：给缩略图一个实心轮廓，16px 下也能被认出来 -->
+  <rect x="2" y="2" width="60" height="60" rx="17" fill="url(#qqbBadge)"/>
+
+  <!-- 对话气泡：主体 + 左下角尾巴，同色填充所以视觉上连成一体 -->
+  <rect x="13" y="12.5" width="38" height="30" rx="9.5" fill="#FBF9F5"/>
+  <path d="M21.5 40.5h11.5L21.5 52z" fill="#FBF9F5"/>
+
+  <!-- 星芒：AI 人设。四角星比五角星更"轻"，也更贴主题 -->
+  <path d="M32 17.5l2.75 7.25 7.25 2.75-7.25 2.75L32 37.5l-2.75-7.25L22 27.5l7.25-2.75z"
+        fill="#D97757"/>
+</svg>
